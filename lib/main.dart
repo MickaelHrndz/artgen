@@ -38,6 +38,7 @@ class _ArtGenPageState extends State<ArtGenPage> with SingleTickerProviderStateM
 
   // List of painters wrapped in functions to recreate instances of them
   static final List<Function> paintersFunctions = [
+    () => FarrisPainter(),
     () => PointsPainter(), 
     () => LinesPainter(), 
     () => ShadowsPainter(), 
@@ -58,7 +59,7 @@ class _ArtGenPageState extends State<ArtGenPage> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: 5);
+    _tabController = TabController(vsync: this, length: 6);
   }
 
   // Returns a tab with a properly styled title
@@ -116,6 +117,7 @@ class _ArtGenPageState extends State<ArtGenPage> with SingleTickerProviderStateM
         isScrollable: true,
         controller: _tabController,
         tabs: [
+          tab("Farris"),
           tab("Points"),
           tab("Lines"),
           tab("Shadows"),
