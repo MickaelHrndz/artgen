@@ -7,14 +7,13 @@ import 'package:permission_handler/permission_handler.dart';
 // Generic painter that can save its canvas as an image
 class RecordablePainter extends CustomPainter {
 
-  // Picture recorder to save the canvas as an image
-  ui.PictureRecorder recorder = ui.PictureRecorder();
+  // Default used colors
+  final colors = [Colors.red, Colors.orange, Colors.yellow, Colors.green, Colors.blue, Colors.purple, Colors.pink ];
+
+  static const imageSize = 512;
 
   // Object used for random generation
   Random rnd = Random();
-
-  // Default used colors
-  final colors = [Colors.red, Colors.orange, Colors.yellow, Colors.green, Colors.blue, Colors.purple, Colors.pink ];
 
   @override
   void paint(Canvas canvas, Size size) {}
@@ -26,12 +25,20 @@ class RecordablePainter extends CustomPainter {
 
   // Save the canvas as an image in the phone gallery
   saveImage() async {
-    paint(Canvas(recorder), Size(500, 500));
+    // Picture recorder to save the canvas as an image
+    var recorder = ui.PictureRecorder();
+
+    // Paint on a recorded canvas
+    paint(Canvas(recorder), Size(imageSize.toDouble(), imageSize.toDouble()));
     var picture = recorder.endRecording();
-    var image = await picture.toImage(500, 500);
+
+    // Convert to a png image
+    var image = await picture.toImage(imageSize, imageSize);
     var pngBytes = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    // Ask storage permission
     Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler().requestPermissions([PermissionGroup.storage]);
-    if(permissions[PermissionGroup.storage] == PermissionStatus.granted) {
+    if(permissions[PermissionGroup.storage] == PermissionStatus.granted) { // if granted, save image
       await ImageGallerySaver.saveImage(pngBytes.buffer.asUint8List());
     }
   }
@@ -39,28 +46,27 @@ class RecordablePainter extends CustomPainter {
 
 //Frank Farris equation : (cos(t) + cos(6t)/2 + sin(14t)/3, sin(t) + sin(6t)/2 + cos(14t)/3)
 class FarrisPainter extends RecordablePainter {
+
+  FarrisPainter(this.a, this.b);
   
   static final ui.ParagraphBuilder paragraphBuilder = ui.ParagraphBuilder(
           ui.ParagraphStyle(
             fontSize:   18,
-            textAlign: TextAlign.center
+            textAlign: TextAlign.start
           )
         );
           //..pushStyle(TextStyle(color: blue))
-          
+  
+  int a;
+  int b;
+
   @override
   void paint(Canvas canvas, Size size) {
-    ui.Paragraph paragraph = paragraphBuilder.build()
-          ..layout(ui.ParagraphConstraints(width: size.width)); 
     var paint = Paint()
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;
-    var a = rnd.nextInt(24);
-    var b = rnd.nextInt(24);
-    paragraphBuilder..pop()..pop();
-    paragraphBuilder.pushStyle(ui.TextStyle(color: Colors.grey));
-    paragraphBuilder.addText("($a,$b)");
-    canvas.drawParagraph(paragraph, Offset(0, -16));
+    /*var a = rnd.nextInt(32);
+    var b = rnd.nextInt(32);*/
     var points = 5000;
     var iColor = 0;
     for(var i in List.generate(points, (i) => i)){
@@ -77,8 +83,15 @@ class FarrisPainter extends RecordablePainter {
           //Offset(i*(size.width / points), i*(size.height / points ))
       ],
       paint
-        ..color = colors[iColor]);
+        ..color = colors[iColor]
+      );
     }
+    paragraphBuilder..pop();
+    paragraphBuilder.pushStyle(ui.TextStyle(color: Colors.grey));
+    paragraphBuilder.addText("($a,$b)");
+    ui.Paragraph paragraph = paragraphBuilder.build()
+          ..layout(ui.ParagraphConstraints(width: size.width)); 
+    canvas.drawParagraph(paragraph, Offset(0, 0));
   }
 
   @override
