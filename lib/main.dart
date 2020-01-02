@@ -15,6 +15,7 @@ class ArtGenApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: title,
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
@@ -34,28 +35,24 @@ class ArtGenPage extends StatefulWidget {
 
 class _ArtGenPageState extends State<ArtGenPage> with SingleTickerProviderStateMixin {
 
-  // Scaffold key used to display snackbars
-  //final _scaffoldKey = GlobalKey<ScaffoldState>();
-
   // Is the settings menu open
   bool settings = false;
-
+  
+  // Farris Painter parameters
   static FarrisParams farrisParams = FarrisParams();
 
-  TextStyle textStyle(context) => TextStyle(color: Theme.of(context).primaryColor, fontSize: 18);
-
   // List of painters wrapped in functions to recreate instances of them
-  static final List<Function> paintersFunctions = [
-    () => FarrisPainter(farrisParams.a, farrisParams.b),
-    () => PointsPainter(), 
-    () => LinesPainter(), 
-    () => ShadowsPainter(), 
-    () => TrianglesPainter(),
-    () => OvalsPainter(), 
-  ];
+  static final Map<String, Function> paintersFunctions = {
+    "Farris": () => FarrisPainter(farrisParams.a, farrisParams.b),
+    "Points": () => PointsPainter(), 
+    "Lines": () => LinesPainter(), 
+    "Shadows": () => ShadowsPainter(), 
+    "Triangles": () => TrianglesPainter(),
+    "Ovals": () => OvalsPainter(), 
+  };
 
   // List of current painters
-  static final List<RecordablePainter> painters = paintersFunctions.map(
+  static final List<RecordablePainter> painters = paintersFunctions.values.map(
     (painter) => painter() as RecordablePainter).toList();
 
   // List of streams each corresponding to a painter
@@ -64,11 +61,8 @@ class _ArtGenPageState extends State<ArtGenPage> with SingleTickerProviderStateM
   // Tab controller for the TabBarView
   TabController _tabController;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(vsync: this, length: 6);
-  }
+  // Default text style
+  TextStyle textStyle(context) => TextStyle(color: Theme.of(context).primaryColor, fontSize: 18);
 
   // Returns a tab with a properly styled title
   Tab tab(String title) => Tab(child: Text(title, style: TextStyle(color: Theme.of(context).primaryColor)));
@@ -118,41 +112,55 @@ class _ArtGenPageState extends State<ArtGenPage> with SingleTickerProviderStateM
       ),
     );
 
-  refreshPainter() => setState(() { // Recreate the current painter and notifies its stream
-            painters[_tabController.index] = paintersFunctions[_tabController.index]();
-            streams[_tabController.index].value = null;
-          });
+  // Refresh the painter of the currently selected tab
+  refreshPainter() => setState(() {
+    // Recreate the current painter
+    painters[_tabController.index] = paintersFunctions.values.elementAt(_tabController.index)();
+
+    // Notifies its stream
+    streams[_tabController.index].value = null;
+  });
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the tab controller
+    _tabController = TabController(vsync: this, length: 6);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //key: _scaffoldKey,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
         leading: FlatButton(
           onPressed: () => setState(() => settings = !settings),
           child: Icon(Icons.settings, color: settings ? Colors.deepPurple[300] : Theme.of(context).primaryColor,),),
-        title: Text("artgen", style: TextStyle(color: Theme.of(context).primaryColor),),
+        title: Text(widget.title, style: TextStyle(color: Theme.of(context).primaryColor),),
         centerTitle: true,
         actions: <Widget>[
-          Builder(
-          builder: (context) => FlatButton(
-              child: Icon(Icons.save, color: Theme.of(context).primaryColor,),
-              onPressed: () async {
-                var res = await painters[_tabController.index].saveImage();
-                if(res != "") {
-                  Scaffold.of(context).showSnackBar(SnackBar(
-                    duration: Duration(seconds: 2),
-                    backgroundColor: Theme.of(context).primaryColor,
-                    content: Text("Image saved in the phone storage.", textAlign: TextAlign.center,),
-                  ));
+          AspectRatio(
+            aspectRatio: 1,
+            child: Builder(
+              builder: (context) => FlatButton(
+                padding: EdgeInsets.all(0),
+                child: Icon(Icons.save, color: Theme.of(context).primaryColor,),
+                onPressed: () async {
+                  var res = await painters[_tabController.index].saveImage();
+                  if(res != "") {
+                    Scaffold.of(context).showSnackBar(SnackBar(
+                      duration: Duration(seconds: 2),
+                      backgroundColor: Theme.of(context).primaryColor,
+                      content: Text("Image saved in the phone storage.", textAlign: TextAlign.center,),
+                    ));
+                  }
                 }
-              }
+              ),
             ),
           )
         ],
-        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
         elevation: 0,
@@ -167,12 +175,8 @@ class _ArtGenPageState extends State<ArtGenPage> with SingleTickerProviderStateM
         isScrollable: true,
         controller: _tabController,
         tabs: [
-          tab("Farris"),
-          tab("Points"),
-          tab("Lines"),
-          tab("Shadows"),
-          tab("Triangles"),
-          tab("Ovals"),
+          for(var name in paintersFunctions.keys)
+            tab(name)
         ]
       ),
       body: Stack(
@@ -208,7 +212,6 @@ class _ArtGenPageState extends State<ArtGenPage> with SingleTickerProviderStateM
                 )
             ]
           ),
-          
         ]
       ));
   }

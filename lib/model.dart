@@ -6,8 +6,12 @@ part 'model.g.dart';
 class FarrisParams = FarrisParamsBase with _$FarrisParams;
 
 abstract class FarrisParamsBase with Store {
-  static const spread = 52;
+
+  // Random object
   static Random _rnd = Random();
+
+  // Random value's spread
+  static const spread = 52;
 
   @observable
   int a = _rnd.nextInt(spread);
@@ -21,6 +25,7 @@ abstract class FarrisParamsBase with Store {
   @action
   void addToB(int val) => b += val;
 
+  // Set a and b to random values according to the spread
   @action
   void randomize(){
     a = _rnd.nextInt(spread);

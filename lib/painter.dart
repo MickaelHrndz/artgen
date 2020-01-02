@@ -44,51 +44,64 @@ class RecordablePainter extends CustomPainter {
   }
 }
 
-//Frank Farris equation : (cos(t) + cos(6t)/2 + sin(14t)/3, sin(t) + sin(6t)/2 + cos(14t)/3)
+//Frank Farris equation : (cos(t) + cos(a*t)/2 + sin(b*t)/3, sin(t) + sin(a*t)/2 + cos(b*t)/3)
 class FarrisPainter extends RecordablePainter {
 
   FarrisPainter(this.a, this.b);
   
+  // Builder to write text on the canvas
   static final ui.ParagraphBuilder paragraphBuilder = ui.ParagraphBuilder(
-          ui.ParagraphStyle(
-            fontSize:   18,
-            textAlign: TextAlign.start
-          )
-        );
+    ui.ParagraphStyle(
+      fontSize:   18,
+      textAlign: TextAlign.start
+    )
+  );
           //..pushStyle(TextStyle(color: blue))
   
+  // Parameters
   int a;
   int b;
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Custom paint
     var paint = Paint()
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;
-    /*var a = rnd.nextInt(32);
-    var b = rnd.nextInt(32);*/
-    var points = 5000;
+    
+    // Number of iterations
+    var points = 5200;
+
+    // Index for the colors list
     var iColor = 0;
+
+    // Draw each point
     for(var i in List.generate(points, (i) => i)){
+      // Calculates x and y according to the canvas size
       var xi = i*(size.width / points);
       var yi = i*(size.height / points);
+
+      // Increment color index, reset if it hits the end
       iColor = iColor+1;
       if(iColor > colors.length-1) iColor = 0;
+
+      // Draw the point
       canvas.drawPoints(
-      ui.PointMode.points, 
-      [
+        ui.PointMode.points, 
+        [ 
           Offset(
             (size.width /2)+(cos(xi) + cos(a*xi)/2 + sin(b*xi)/3)*100, 
             (size.height /2)+(sin(yi) + sin(a*yi)/2 + cos(b*yi)/3)*100)
-          //Offset(i*(size.width / points), i*(size.height / points ))
-      ],
-      paint
-        ..color = colors[iColor]
+        ],
+        paint
+          ..color = colors[iColor]
       );
     }
-    paragraphBuilder..pop();
-    paragraphBuilder.pushStyle(ui.TextStyle(color: Colors.grey));
+    // Configure paragraph builder
+    paragraphBuilder..pop()..pushStyle(ui.TextStyle(color: Colors.grey));
     paragraphBuilder.addText("($a,$b)");
+
+    // Generate paragraph and draw it
     ui.Paragraph paragraph = paragraphBuilder.build()
           ..layout(ui.ParagraphConstraints(width: size.width)); 
     canvas.drawParagraph(paragraph, Offset(0, 0));
