@@ -24,7 +24,7 @@ class RecordablePainter extends CustomPainter {
   }
 
   // Save the canvas as an image in the phone gallery
-  saveImage() async {
+  Future<bool> saveImage() async {
     // Picture recorder to save the canvas as an image
     var recorder = ui.PictureRecorder();
 
@@ -37,10 +37,10 @@ class RecordablePainter extends CustomPainter {
     var pngBytes = await image.toByteData(format: ui.ImageByteFormat.png);
 
     // Ask storage permission
-    Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler().requestPermissions([PermissionGroup.storage]);
-    if(permissions[PermissionGroup.storage] == PermissionStatus.granted) { // if granted, save image
+    if((await Permission.storage.request()).isGranted){
       await ImageGallerySaver.saveImage(pngBytes.buffer.asUint8List());
-    }
+      return true;
+    } else { return false; }
   }
 }
 

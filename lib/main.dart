@@ -193,10 +193,11 @@ class _ArtGenPageState extends State<ArtGenPage> with SingleTickerProviderStateM
                       builder: (context, snap) => tabView(painters[i])
                     ),
                     i == 0 ? AnimatedContainer(
-                      color: Colors.white,
+                      color: Theme.of(context).scaffoldBackgroundColor.withAlpha(200),
                       height: settings ? 174 : 0,
                       padding: EdgeInsets.all(8),
                       duration: Duration(milliseconds: 300),
+                      curve: Curves.decelerate,
                       child: Observer(
                         builder: (context) => Column(
                           children: <Widget>[

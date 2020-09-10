@@ -5,6 +5,7 @@ part 'model.g.dart';
 
 class FarrisParams = FarrisParamsBase with _$FarrisParams;
 
+// Mobx store representing the Farris generator parameters
 abstract class FarrisParamsBase with Store {
 
   // Random object
